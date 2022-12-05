@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,10 @@ namespace pro.Controllers
             return View("Index",await _context.Pasta.Where(a=>a.Name.Contains(Name)).ToListAsync());
         }
         // GET: Pastas/Details/5
+        public async Task<IActionResult> PastaItems()
+        {
+            return View(await _context.Pasta.ToListAsync());
+        }
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -51,6 +56,7 @@ namespace pro.Controllers
         }
 
         // GET: Pastas/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -61,6 +67,7 @@ namespace pro.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,Name,URL")] Pasta pasta)
         {
             if (ModelState.IsValid)
@@ -73,6 +80,7 @@ namespace pro.Controllers
         }
 
         // GET: Pastas/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -93,6 +101,7 @@ namespace pro.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,URL")] Pasta pasta)
         {
             if (id != pasta.Id)
@@ -124,6 +133,7 @@ namespace pro.Controllers
         }
 
         // GET: Pastas/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

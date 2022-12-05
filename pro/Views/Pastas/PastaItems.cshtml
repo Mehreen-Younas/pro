@@ -1,0 +1,18 @@
+﻿@model IEnumerable<pro.Models.Pasta>
+
+@{
+    ViewData["Title"] = "PastaItems";
+}
+<hr />
+<div class="row">
+    @foreach (var pasta in Model)
+    {
+        <div id="pastaContainer" class="col-lg-3 col-md-6 col-sm-12">
+            <img id="pastaImage" src="@pasta.URL" alt="@pasta.Name" />
+            <span id="PastaTitle">@pasta.Name</span>
+               <span id="pastaPrice">Rs. Coming Soon</span>
+                 <span > <input id="pastaQuantity" type="number" name="quantity" value="" placeholder="0"/></span>
+                 <span id="cartButton"><button>Add to Cart</button></span>
+                </div>
+    }
+</div>
