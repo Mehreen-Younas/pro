@@ -13,6 +13,13 @@ namespace pro.Data
             : base(options)
         {
         }
-        public DbSet<pro.Models.Pasta> Pasta { get; set; }
+        public DbSet<Pasta> Pasta { get; set; }
+        public DbSet<Chef> Chef { get; set; }
+        public DbSet<Order> Order { get; set; }
+        public DbSet<PastaChef> PastaChef { get; set; }
+        public DbSet<Shape> Shape { get; set; }
+
+
+
     }
 }

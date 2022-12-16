@@ -10,8 +10,8 @@ using pro.Data;
 namespace pro.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20221128114505_pastaEntityCreated")]
-    partial class pastaEntityCreated
+    [Migration("20221214073942_allEntitiesCreated")]
+    partial class allEntitiesCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,21 @@ namespace pro.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.17")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("ChefPasta", b =>
+                {
+                    b.Property<int>("ChefsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PastasId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ChefsId", "PastasId");
+
+                    b.HasIndex("PastasId");
+
+                    b.ToTable("ChefPasta");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -221,6 +236,58 @@ namespace pro.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("pro.Models.Chef", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nationality")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Chef");
+                });
+
+            modelBuilder.Entity("pro.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PastaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastaId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Order");
+                });
+
             modelBuilder.Entity("pro.Models.Pasta", b =>
                 {
                     b.Property<int>("Id")
@@ -229,16 +296,74 @@ namespace pro.Data.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShapesId")
+                        .HasColumnType("int");
+
                     b.Property<string>("URL")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ShapesId");
+
                     b.ToTable("Pasta");
+                });
+
+            modelBuilder.Entity("pro.Models.PastaChef", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ChefId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PastaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChefId");
+
+                    b.HasIndex("PastaId");
+
+                    b.ToTable("PastaChef");
+                });
+
+            modelBuilder.Entity("pro.Models.Shape", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Shape");
+                });
+
+            modelBuilder.Entity("ChefPasta", b =>
+                {
+                    b.HasOne("pro.Models.Chef", null)
+                        .WithMany()
+                        .HasForeignKey("ChefsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("pro.Models.Pasta", null)
+                        .WithMany()
+                        .HasForeignKey("PastasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -290,6 +415,58 @@ namespace pro.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("pro.Models.Order", b =>
+                {
+                    b.HasOne("pro.Models.Pasta", "Pastas")
+                        .WithMany()
+                        .HasForeignKey("PastaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Users")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Pastas");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("pro.Models.Pasta", b =>
+                {
+                    b.HasOne("pro.Models.Shape", "Shapes")
+                        .WithMany("Pastas")
+                        .HasForeignKey("ShapesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Shapes");
+                });
+
+            modelBuilder.Entity("pro.Models.PastaChef", b =>
+                {
+                    b.HasOne("pro.Models.Chef", "Chefs")
+                        .WithMany()
+                        .HasForeignKey("ChefId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("pro.Models.Pasta", "Pastas")
+                        .WithMany()
+                        .HasForeignKey("PastaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chefs");
+
+                    b.Navigation("Pastas");
+                });
+
+            modelBuilder.Entity("pro.Models.Shape", b =>
+                {
+                    b.Navigation("Pastas");
                 });
 #pragma warning restore 612, 618
         }

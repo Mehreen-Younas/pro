@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,21 +22,13 @@ namespace pro.Controllers
         // GET: Pastas
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Pasta.ToListAsync());
+            ViewData["PastaChef"] = await _context.PastaChef.ToListAsync();
+            ViewData["Chefs"] = await _context.Chef.ToListAsync();
+            var applicationDbContext = _context.Pasta.Include(b => b.Shapes);
+            return View(await applicationDbContext.ToListAsync());
         }
-        public IActionResult SearchForm() 
-        {
-            return View();
-        }
-        public async Task<IActionResult> SearchResult(string Name)
-        {
-            return View("Index",await _context.Pasta.Where(a=>a.Name.Contains(Name)).ToListAsync());
-        }
-        // GET: Pastas/Details/5
-        public async Task<IActionResult> PastaItems()
-        {
-            return View(await _context.Pasta.ToListAsync());
-        }
+
+        // GET: Books/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -46,6 +37,7 @@ namespace pro.Controllers
             }
 
             var pasta = await _context.Pasta
+                .Include(b => b.Shapes)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (pasta == null)
             {
@@ -55,32 +47,41 @@ namespace pro.Controllers
             return View(pasta);
         }
 
-        // GET: Pastas/Create
-        [Authorize]
+        // GET: Books/Create
         public IActionResult Create()
         {
+            ViewData["ShapesId"] = new SelectList(_context.Shape, "Id", "Name");
+            ViewData["ChefId"] = new SelectList(_context.Chef, "Id", "Name");
             return View();
         }
 
-        // POST: Pastas/Create
+        // POST: Books/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> Create([Bind("Id,Name,URL")] Pasta pasta)
+        public async Task<IActionResult> Create([Bind("Id,Name,URL,Price,ShapesId")] Pasta pasta, List<int> Chefs)
         {
+
             if (ModelState.IsValid)
             {
-                _context.Add(pasta);
+                _context.Pasta.Add(pasta);
                 await _context.SaveChangesAsync();
+                List<PastaChef> pastaChef = new List<PastaChef>();
+                foreach (int chef in Chefs)
+                {
+                    pastaChef.Add(new PastaChef { ChefId = chef, PastaId = pasta.Id });
+                }
+                _context.PastaChef.AddRange(pastaChef);
+                _context.SaveChanges();
+
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ShapesId"] = new SelectList(_context.Shape, "Id", "Id", pasta.ShapesId);
             return View(pasta);
         }
 
-        // GET: Pastas/Edit/5
-        [Authorize]
+        // GET: Books/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -93,16 +94,28 @@ namespace pro.Controllers
             {
                 return NotFound();
             }
+
+            IList<PastaChef> pastaChefs = await _context.PastaChef.Where<PastaChef>(a => a.PastaId == pasta.Id).ToListAsync();
+            IList<int> listChefs = new List<int>();
+            foreach (PastaChef pastaChef in pastaChefs)
+            {
+                listChefs.Add(pastaChef.ChefId);
+            }
+            // var authors = await _context.Author.Where(a=>a.Id.Equals(listAuthors)).ToListAsync();
+
+
+
+            ViewData["ShapesId"] = new SelectList(_context.Shape, "Id", "Name", pasta.ShapesId);
+            ViewData["ChefId"] = new MultiSelectList(_context.Chef, "Id", "Name", listChefs.ToArray());
             return View(pasta);
         }
 
-        // POST: Pastas/Edit/5
+        // POST: Books/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,URL")] Pasta pasta)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,URL,Price,ShapesId")] Pasta pasta)
         {
             if (id != pasta.Id)
             {
@@ -129,11 +142,11 @@ namespace pro.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ShapesId"] = new SelectList(_context.Shape, "Id", "Id", pasta.ShapesId);
             return View(pasta);
         }
 
-        // GET: Pastas/Delete/5
-        [Authorize]
+        // GET: Books/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -142,6 +155,7 @@ namespace pro.Controllers
             }
 
             var pasta = await _context.Pasta
+                .Include(b => b.Shapes)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (pasta == null)
             {
@@ -151,7 +165,7 @@ namespace pro.Controllers
             return View(pasta);
         }
 
-        // POST: Pastas/Delete/5
+        // POST: Books/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
